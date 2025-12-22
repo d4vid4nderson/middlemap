@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Middle Earth Interactive Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --parchment: #e8dcc4;
+            --parchment-dark: #d4c4a8;
+            --ink: #2c1810;
+            --ink-light: #4a3728;
+            --gold: #8b7355;
+            --gold-bright: #c4a574;
+            --red-marker: #8b2500;
+
+            /* Race/Faction Colors */
+            --hobbit: #0a8a0a;
+            --elf: #9370db;
+            --dwarf: #ffa500;
+            --men: #1e5a9e;
+            --evil: #cc0000;
+            --ent: #8b4513;
+            --neutral: #404040;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: var(--ink);
+            overflow: hidden;
+            height: 100dvh;
+            width: 100vw;
+            touch-action: none;
+        }
+
+        /* Map Container */
+        #map-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: grab;
+            background: 
+                radial-gradient(ellipse at center, #1a1208 0%, #0d0906 100%);
+        }
+
+        #map-container:active {
+            cursor: grabbing;
+        }
+
+        #map-wrapper {
+            position: absolute;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        #map-image {
+            display: block;
+            max-width: none;
+            pointer-events: none;
+            image-rendering: high-quality;
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Location Markers */
+        .marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s ease;
+        }
+
+        .marker::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--red-marker);
+            border: 2px solid var(--gold-bright);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow:
+                0 0 8px rgba(139, 37, 0, 0.6),
+                inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .marker-hobbit::before { background: var(--hobbit); box-shadow: 0 0 12px rgba(10, 138, 10, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-elf::before { background: var(--elf); box-shadow: 0 0 12px rgba(147, 112, 219, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-dwarf::before { background: var(--dwarf); box-shadow: 0 0 12px rgba(255, 165, 0, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-men::before { background: var(--men); box-shadow: 0 0 12px rgba(30, 90, 158, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-evil::before { background: var(--evil); box-shadow: 0 0 12px rgba(204, 0, 0, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-ent::before { background: var(--ent); box-shadow: 0 0 12px rgba(139, 69, 19, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+        .marker-neutral::before { background: var(--neutral); box-shadow: 0 0 12px rgba(64, 64, 64, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+
+        .marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .marker:hover::before,
+        .marker.active::before {
+            width: 16px;
+            height: 16px;
+            filter: brightness(1.4);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .marker-hobbit:hover::before,
+        .marker-hobbit.active::before { box-shadow: 0 0 24px rgba(10, 138, 10, 1); }
+        .marker-elf:hover::before,
+        .marker-elf.active::before { box-shadow: 0 0 24px rgba(147, 112, 219, 1); }
+        .marker-dwarf:hover::before,
+        .marker-dwarf.active::before { box-shadow: 0 0 24px rgba(255, 165, 0, 1); }
+        .marker-men:hover::before,
+        .marker-men.active::before { box-shadow: 0 0 24px rgba(30, 90, 158, 1); }
+        .marker-evil:hover::before,
+        .marker-evil.active::before { box-shadow: 0 0 24px rgba(204, 0, 0, 1); }
+        .marker-ent:hover::before,
+        .marker-ent.active::before { box-shadow: 0 0 24px rgba(139, 69, 19, 1); }
+        .marker-neutral:hover::before,
+        .marker-neutral.active::before { box-shadow: 0 0 24px rgba(64, 64, 64, 1); }
+
+        .marker-label {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            color: var(--parchment);
+            text-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.8),
+                0 0 8px rgba(0, 0, 0, 0.6);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .marker:hover .marker-label {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(145deg, var(--parchment), var(--parchment-dark));
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(145deg, var(--parchment-dark), var(--parchment));
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Info Panel */
+        #info-panel {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: auto;
+            width: 90vw;
+            max-width: 500px;
+            background: rgba(232, 220, 196, 0.98);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            padding: 32px 24px 24px;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 200;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #info-panel.open {
+            transform: translateX(0);
+        }
+
+        #info-panel::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 2px;
+            opacity: 0.6;
+        }
+
+        #info-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 24px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 24" fill="none"><line x1="10" y1="12" x2="88" y2="12" stroke="%23c4a574" stroke-width="1.5" opacity="0.5"/><line x1="132" y1="12" x2="210" y2="12" stroke="%23c4a574" stroke-width="1.5" opacity="0.5"/><path d="M110 2 L110 22" stroke="%23c4a574" stroke-width="1.5" opacity="0.5"/><path d="M110 6 Q 105 8, 105 12 Q 105 16, 110 18" stroke="%23c4a574" stroke-width="1.5" fill="none" opacity="0.5"/><path d="M110 6 Q 115 8, 115 12 Q 115 16, 110 18" stroke="%23c4a574" stroke-width="1.5" fill="none" opacity="0.5"/><circle cx="110" cy="12" r="3" fill="%23c4a574" opacity="0.5"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            pointer-events: none;
+        }
+
+
+
+        .info-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .info-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: var(--gold);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .info-description {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--ink-light);
+            margin-bottom: 24px;
+        }
+
+        .info-significance-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .info-significance {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--ink-light);
+            font-style: italic;
+            padding-bottom: 50px;
+        }
+
+        .info-image {
+            width: calc(100% + 48px);
+            height: 250px;
+            object-fit: cover;
+            border-radius: 0;
+            margin: -32px -24px 16px -24px;
+            border: none;
+        }
+
+        .info-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .info-close:hover {
+            background: rgba(0, 0, 0, 0.7);
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .info-close svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        /* Header */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            background: linear-gradient(to bottom,
+                rgba(13, 9, 6, 0.9) 0%,
+                rgba(13, 9, 6, 0.6) 60%,
+                transparent 100%);
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .header-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--parchment);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-subtitle {
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            color: var(--gold-bright);
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        /* Loading State */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            color: var(--parchment);
+            letter-spacing: 0.2em;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-ring {
+            width: 60px;
+            height: 60px;
+            border: 2px solid transparent;
+            border-top-color: var(--gold-bright);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Search */
+        #search-container {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 100;
+            width: calc(100vw - 48px);
+            max-width: 350px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px 20px;
+            padding-right: 44px;
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+            background: rgba(232, 220, 196, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 24px;
+            color: var(--ink);
+            outline: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        #search-input::placeholder {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        #search-input:focus {
+            border-color: var(--gold-bright);
+            box-shadow: 0 4px 20px rgba(196, 165, 116, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold);
+            pointer-events: none;
+        }
+
+        #search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            background: rgba(232, 220, 196, 0.98);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        #search-results.active {
+            display: block;
+        }
+
+        .search-result {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(139, 115, 85, 0.2);
+            transition: background 0.2s ease;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result:hover {
+            background: rgba(196, 165, 116, 0.3);
+        }
+
+        .search-result-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            color: var(--ink);
+        }
+
+        .search-result-type {
+            font-size: 0.8rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            #info-panel {
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: auto;
+                width: 400px;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+                background: rgba(232, 220, 196, 0.98);
+                padding: 24px;
+            }
+
+            #info-panel::before {
+                display: none;
+            }
+
+            .marker-label {
+                font-size: 11px;
+                opacity: 1;
+            }
+
+            #search-container {
+                top: 16px;
+                right: 32px;
+                width: 320px;
+            }
+
+            #controls {
+                top: 100px;
+                right: 32px;
+            }
+
+            .header-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Decorative Border */
+        .corner-decoration {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            pointer-events: none;
+            z-index: 40;
+            opacity: 0.4;
+        }
+
+        .corner-decoration svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .corner-tl { top: 8px; left: 8px; }
+        .corner-tr { top: 8px; right: 8px; transform: scaleX(-1); }
+        .corner-bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+        .corner-br { bottom: 8px; right: 8px; transform: scale(-1); }
+
+        @media (max-width: 768px) {
+            .corner-decoration { display: none; }
+
+            #search-container {
+                left: 24px;
+                right: 24px;
+                width: auto;
+                max-width: none;
+            }
+
+            #controls {
+                right: 24px;
+            }
+        }
+
+        /* Map Key/Legend */
+        #map-key {
+            position: fixed;
+            top: calc(80px + (48px * 3) + (8px * 3));
+            right: 24px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #map-key-toggle {
+            font-size: 18px;
+        }
+
+        #map-key-panel {
+            position: absolute;
+            top: 0;
+            right: 60px;
+            background: rgba(232, 220, 196, 0.98);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transform: translateX(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #map-key-panel.open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .map-key-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .map-key-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: var(--ink-light);
+        }
+
+        .map-key-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .map-key-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loading-ring"></div>
+        <div class="loading-text">Charting Middle Earth</div>
+    </div>
+
+    <!-- Corner Decorations -->
+    <div class="corner-decoration corner-tl">
+        <svg viewBox="0 0 60 60" fill="none">
+            <path d="M0 60V20C0 8.954 8.954 0 20 0h40" stroke="#c4a574" stroke-width="1.5"/>
+            <path d="M0 50V25C0 11.193 11.193 0 25 0h25" stroke="#c4a574" stroke-width="1"/>
+            <circle cx="20" cy="20" r="3" fill="#c4a574"/>
+        </svg>
+    </div>
+    <div class="corner-decoration corner-tr">
+        <svg viewBox="0 0 60 60" fill="none">
+            <path d="M0 60V20C0 8.954 8.954 0 20 0h40" stroke="#c4a574" stroke-width="1.5"/>
+            <path d="M0 50V25C0 11.193 11.193 0 25 0h25" stroke="#c4a574" stroke-width="1"/>
+            <circle cx="20" cy="20" r="3" fill="#c4a574"/>
+        </svg>
+    </div>
+    <div class="corner-decoration corner-bl">
+        <svg viewBox="0 0 60 60" fill="none">
+            <path d="M0 60V20C0 8.954 8.954 0 20 0h40" stroke="#c4a574" stroke-width="1.5"/>
+            <path d="M0 50V25C0 11.193 11.193 0 25 0h25" stroke="#c4a574" stroke-width="1"/>
+            <circle cx="20" cy="20" r="3" fill="#c4a574"/>
+        </svg>
+    </div>
+    <div class="corner-decoration corner-br">
+        <svg viewBox="0 0 60 60" fill="none">
+            <path d="M0 60V20C0 8.954 8.954 0 20 0h40" stroke="#c4a574" stroke-width="1.5"/>
+            <path d="M0 50V25C0 11.193 11.193 0 25 0h25" stroke="#c4a574" stroke-width="1"/>
+            <circle cx="20" cy="20" r="3" fill="#c4a574"/>
+        </svg>
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <h1 class="header-title">Middle Earth</h1>
+        <p class="header-subtitle">An Interactive Journey Through Arda</p>
+    </header>
+
+    <!-- Search -->
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Search locations...">
+        <span class="search-icon">⌕</span>
+        <div id="search-results"></div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-container">
+        <div id="map-wrapper">
+            <img id="map-image" src="" alt="Map of Middle Earth">
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls">
+        <button class="control-btn" id="zoom-in" aria-label="Zoom in">+</button>
+        <button class="control-btn" id="zoom-out" aria-label="Zoom out">−</button>
+        <button class="control-btn" id="reset-view" aria-label="Reset view">⌂</button>
+        <button class="control-btn" id="map-key-toggle" aria-label="Toggle map key">⚑</button>
+    </div>
+
+    <!-- Map Key Panel -->
+    <div id="map-key">
+        <div id="map-key-panel">
+            <div class="map-key-title">Legend</div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--hobbit); box-shadow: 0 0 4px rgba(10, 138, 10, 0.6);"></div>
+                <span>Hobbits</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--elf); box-shadow: 0 0 4px rgba(147, 112, 219, 0.6);"></div>
+                <span>Elves</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--dwarf); box-shadow: 0 0 4px rgba(255, 165, 0, 0.6);"></div>
+                <span>Dwarves</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--men); box-shadow: 0 0 4px rgba(30, 90, 158, 0.6);"></div>
+                <span>Men</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--evil); box-shadow: 0 0 4px rgba(204, 0, 0, 0.6);"></div>
+                <span>Evil</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--ent); box-shadow: 0 0 4px rgba(139, 69, 19, 0.6);"></div>
+                <span>Ents</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-color" style="background: var(--neutral); box-shadow: 0 0 4px rgba(64, 64, 64, 0.6);"></div>
+                <span>Neutral</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div id="info-panel">
+        <button class="info-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor"/>
+            </svg>
+        </button>
+        <img id="info-image" class="info-image" src="" alt="" style="display: none;">
+        <h2 class="info-title" id="info-title">Location</h2>
+        <p class="info-subtitle" id="info-subtitle">Region</p>
+        <div class="info-description" id="info-description">Description</div>
+        <div id="info-significance-section" style="display: none;">
+            <h3 class="info-significance-title">Significance</h3>
+            <p class="info-significance" id="info-significance"></p>
+        </div>
+    </div>
+
+    <script>
+        // Location data with coordinates (percentage-based for responsiveness)
+
+        /* LOCATIONS TO ADD BACK (12 remaining):
+        - Lothlórien (elf)
+        - Isengard (evil)
+        - Edoras/Rohan (men)
+        - Helm's Deep (men)
+        - Osgiliath (men)
+        - Erebor (dwarf)
+        - Lake-town (men)
+        - Mirkwood (elf)
+        - Dol Guldur (evil)
+        - Grey Havens (elf)
+        - Cirith Ungol (evil)
+        - Ithilien (men)
+        */
+
+        const locations = [
+            {
+                id: 'shire',
+                name: 'The Shire',
+                subtitle: 'Homeland of the Hobbits',
+                category: 'hobbit',
+                x: 37.1,
+                y: 27.0,
+                image: 'https://cdn.openart.ai/stable_diffusion/1cd8f566346191ea45f254405ba5204a3c429405_2000x2000.webp',
+                description: 'The Shire is the pastoral homeland of the Hobbits in the northwest of Middle-earth. Known for its rolling green hills, cozy hobbit-holes, and peaceful inhabitants who enjoy simple pleasures: good food, pipe-weed, and comfortable living. It was here that Bilbo and Frodo Baggins began their legendary journeys.',
+                significance: 'Home to Bilbo and Frodo Baggins, the Ring-bearers. Both their quests began and ended here, and it was the idyllic peace of the Shire that motivated them to save Middle-earth from darkness.'
+            },
+            {
+                id: 'rivendell',
+                name: 'Rivendell',
+                subtitle: 'The Last Homely House',
+                category: 'elf',
+                x: 50.7,
+                y: 25.2,
+                image: 'https://static.wikia.nocookie.net/lotr/images/7/70/Jerry_Vanderstelt_-_Rivendell.jpg/revision/latest/scale-to-width-down/1000?cb=20180501204919',
+                description: 'Rivendell, or Imladris in Sindarin, is the hidden valley refuge of the Elves ruled by Lord Elrond. Founded in the Second Age, it served as a sanctuary of wisdom and lore throughout the ages. The Council of Elrond convened here to decide the fate of the One Ring, and many weary travelers found rest within its halls.',
+                significance: 'Site of the Council of Elrond where the Fellowship of the Ring was formed. Frodo, Gandalf, Aragorn, Legolas, Gimli, Boromir, Sam, Merry, and Pippin all gathered here to plan the destruction of the One Ring.'
+            },
+            {
+                id: 'moria',
+                name: 'Khazad-dûm (Moria)',
+                subtitle: 'The Dwarrowdelf',
+                category: 'dwarf',
+                x: 52.1,
+                y: 35.0,
+                image: 'https://static.wikia.nocookie.net/lotr/images/8/86/Khazad-d%C3%BBm_-_The_Rings_of_Power.png/revision/latest/scale-to-width-down/1000?cb=20220902211108',
+                description: 'Khazad-dûm, known as Moria after its fall, was the greatest of all Dwarven kingdoms. Its vast halls stretched beneath the Misty Mountains, filled with mithril veins and architectural wonders. The Dwarves delved too deep and awakened Durin\'s Bane, a Balrog of Morgoth, leading to the kingdom\'s abandonment.',
+                significance: 'The Fellowship passed through Moria, where Gandalf the Grey fell fighting the Balrog at the Bridge of Khazad-dûm. This sacrifice allowed the others to escape and would lead to Gandalf\'s return as Gandalf the White.'
+            },
+            {
+                id: 'mordor',
+                name: 'Mordor',
+                subtitle: 'The Black Land',
+                category: 'evil',
+                x: 74.2,
+                y: 63.8,
+                image: 'Mordor.webp',
+                description: 'Mordor, the Black Land, is the realm of Sauron in the southeast of Middle-earth. Surrounded by mountain ranges on three sides, it is a land of ash and shadow. Mount Doom rises at its heart—the only place where the One Ring could be unmade, as it was the only place it could have been forged.',
+                significance: 'Frodo and Sam journeyed through Mordor to reach Mount Doom. The land\'s dark power tested their resolve, and Gollum led them through its treacherous paths before his final betrayal at the Cracks of Doom.'
+            },
+            {
+                id: 'baradur',
+                name: 'Barad-dûr',
+                subtitle: 'The Dark Tower',
+                category: 'evil',
+                x: 73.0,
+                y: 56.4,
+                image: 'Barad_Dur.webp',
+                description: 'Barad-dûr, the Dark Tower, was Sauron\'s fortress in Mordor. Built with the power of the One Ring during the Second Age, it was the greatest fortress ever built. Even when razed, it could not be fully destroyed while the Ring endured. Its Eye of Sauron kept watch over Middle-earth.',
+                significance: 'Sauron\'s seat of power from which the Eye searched for the Ring. When Frodo destroyed the Ring at Mount Doom, Barad-dûr collapsed into ruin, marking the final defeat of the Dark Lord.'
+            },
+            {
+                id: 'mountdoom',
+                name: 'Mount Doom',
+                subtitle: 'Orodruin',
+                category: 'evil',
+                x: 70.5,
+                y: 58.3,
+                image: 'Mount_Doom.webp',
+                description: 'Mount Doom, or Orodruin in Sindarin, is the volcanic mountain where Sauron forged the One Ring. Only in the Cracks of Doom, within its fiery heart, could the Ring be destroyed. The mountain\'s eruption at the Ring\'s destruction brought about the final end of Sauron\'s power.',
+                significance: 'Frodo and Sam\'s ultimate destination. Though Frodo succumbed to the Ring\'s power at the last moment, Gollum\'s struggle for the Ring led to its destruction, saving Middle-earth from Sauron\'s dominion.'
+            },
+            {
+                id: 'bree',
+                name: 'Bree',
+                subtitle: 'Crossroads of the North',
+                category: 'men',
+                x: 42.3,
+                y: 24.9,
+                image: 'bree.jpg',
+                description: 'Bree is a village of Men and Hobbits at the crossing of the East-West and North-South roads. The Prancing Pony inn has served travelers for centuries. It was here that Frodo first encountered Strider, beginning the fateful alliance that would help destroy the Ring.',
+                significance: 'Frodo, Sam, Merry, and Pippin met Aragorn (Strider) at The Prancing Pony, beginning their alliance. This chance meeting proved crucial to the Quest, as Aragorn became their guide and protector.'
+            },
+            {
+                id: 'weathertop',
+                name: 'Weathertop',
+                subtitle: 'Amon Sûl',
+                category: 'neutral',
+                x: 45.5,
+                y: 25.8,
+                image: 'weathertop.webp',
+                description: 'Weathertop, or Amon Sûl, is a ruined watchtower on the hill of the same name. Once the greatest of the tower fortresses guarding the northern kingdom of Arnor, it held a palantír. On its slopes, the Nazgûl wounded Frodo with a Morgul-blade, nearly claiming him for the Shadow.',
+                significance: 'The Nazgûl attacked Frodo here, and the Witch-king stabbed him with a Morgul-blade. This wound nearly turned Frodo into a wraith, forcing a desperate ride to Rivendell where Elrond saved his life.'
+            },
+            {
+                id: 'isengard',
+                name: 'Isengard',
+                subtitle: 'Fortress of Saruman',
+                category: 'evil',
+                x: 48.63,
+                y: 46.01,
+                image: 'Isengard.webp',
+                description: 'Isengard is a great fortress at the southern end of the Misty Mountains. Its central tower, Orthanc, was built by the Númenóreans and was impregnable. Saruman the White made it his seat of power, where he bred the Uruk-hai and plotted with Sauron before his betrayal of the Free Peoples.',
+                significance: 'Saruman imprisoned Gandalf atop Orthanc, delaying the wizard\'s warning about the Ring. The Ents of Fangorn Forest later destroyed Isengard\'s defenses, trapping Saruman in his tower and ending his threat to Rohan.'
+            },
+            {
+                id: 'fangorn',
+                name: 'Fangorn Forest',
+                subtitle: 'Home of the Ents',
+                category: 'ent',
+                x: 52.5,
+                y: 44.2,
+                image: 'fangorn.webp',
+                description: 'Fangorn Forest is an ancient woodland at the southeastern end of the Misty Mountains. It is home to the Ents, tree-shepherds led by Treebeard, the oldest living creature in Middle-earth. The Ents\' march on Isengard changed the course of the War of the Ring.',
+                significance: 'Merry and Pippin met Treebeard and convinced the Ents to march on Isengard. The destruction of Saruman\'s fortress by the Ents proved pivotal in defeating the wizard and freeing Gandalf.'
+            },
+            {
+                id: 'gondor',
+                name: 'Minas Tirith',
+                subtitle: 'City of Kings',
+                category: 'men',
+                x: 61.2,
+                y: 60.7,
+                image: 'minas_tirith.webp',
+                description: 'Minas Tirith, the White City, is the capital of Gondor built into Mount Mindolluin. Its seven levels of white walls tower above the Pelennor Fields. Once called Minas Anor, the Tower of the Sun, it stood as the greatest remaining stronghold of Men against Sauron\'s darkness.',
+                significance: 'Site of the Battle of the Pelennor Fields, where Gandalf, Aragorn, and the Rohirrim defended against Sauron\'s forces. Aragorn later claimed his throne here as King Elessar, fulfilling the return of the King.'
+            },
+            {
+                id: 'dead-marshes',
+                name: 'Dead Marshes',
+                subtitle: 'The Mere of Dead Faces',
+                category: 'neutral',
+                x: 63.0,
+                y: 49.1,
+                image: 'dead-marshes.webp',
+                description: 'The Dead Marshes are a vast wetland east of the Emyn Muil. They spread over the ancient battlefield where the Last Alliance defeated Sauron. The faces of fallen warriors can be seen beneath the water, preserved by some fell enchantment. Gollum guided Frodo and Sam through this haunted place.',
+                significance: 'Frodo and Sam crossed these treacherous marshes guided by Gollum, who saved Frodo from drowning in the haunted waters. This deepened Frodo\'s conflicted trust in their dangerous guide.'
+            },
+            {
+                id: 'minas-morgul',
+                name: 'Minas Morgul',
+                subtitle: 'Tower of Black Sorcery',
+                category: 'evil',
+                x: 64.7,
+                y: 62.0,
+                image: 'Minas_Morgul.webp',
+                description: 'Minas Morgul, once Minas Ithil the Tower of the Moon, was captured by the Nazgûl and became their stronghold. Its pale, corpse-like glow and the terror emanating from within made it one of the most dread places in Middle-earth. The Witch-king ruled from its twisted spires.',
+                significance: 'Frodo, Sam, and Gollum passed by this dread fortress on their way to Cirith Ungol. They witnessed the Witch-king leading his army out to war, and barely escaped detection by hiding from the Nazgûl.'
+            }
+        ];
+
+        // App State
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let lastTouchDist = 0;
+        let imageWidth, imageHeight;
+
+        const MIN_SCALE = 0.5;
+        const MAX_SCALE = 5;
+
+        // DOM Elements
+        const mapContainer = document.getElementById('map-container');
+        const mapWrapper = document.getElementById('map-wrapper');
+        const mapImage = document.getElementById('map-image');
+        const infoPanel = document.getElementById('info-panel');
+        const loading = document.getElementById('loading');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        // Load the map image
+        function loadMap() {
+            mapImage.onload = () => {
+                imageWidth = mapImage.naturalWidth;
+                imageHeight = mapImage.naturalHeight;
+                
+                // Initial fit to screen
+                fitMapToScreen();
+                
+                // Create markers
+                createMarkers();
+                
+                // Hide loading
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                }, 500);
+            };
+            
+            mapImage.onerror = () => {
+                // If local file fails, show helpful message
+                document.querySelector('.loading-text').innerHTML = 
+                    'Could not load map.png<br><small style="font-size: 0.7em; opacity: 0.7;">Make sure map.png is in the same folder as index.html<br>or run a local server: python3 -m http.server</small>';
+                document.querySelector('.loading-ring').style.display = 'none';
+            };
+            
+            // Use the map image
+            mapImage.src = 'map.png';
+        }
+
+        function fitMapToScreen() {
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            
+            const scaleX = containerWidth / imageWidth;
+            const scaleY = containerHeight / imageHeight;
+            
+            scale = Math.max(scaleX, scaleY);
+            
+            // Center the map
+            translateX = (containerWidth - imageWidth * scale) / 2;
+            translateY = (containerHeight - imageHeight * scale) / 2;
+            
+            updateTransform();
+        }
+
+        function createMarkers() {
+            locations.forEach(loc => {
+                const marker = document.createElement('div');
+                marker.className = `marker marker-${loc.category}`;
+                marker.dataset.id = loc.id;
+
+                const label = document.createElement('span');
+                label.className = 'marker-label';
+                label.textContent = loc.name;
+                marker.appendChild(label);
+
+                marker.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showLocationInfo(loc);
+                });
+
+                mapWrapper.appendChild(marker);
+            });
+
+            updateMarkerPositions();
+        }
+
+        function updateMarkerPositions() {
+            locations.forEach(loc => {
+                const marker = mapWrapper.querySelector(`[data-id="${loc.id}"]`);
+                if (marker) {
+                    const x = (loc.x / 100) * imageWidth;
+                    const y = (loc.y / 100) * imageHeight;
+                    marker.style.left = `${x}px`;
+                    marker.style.top = `${y}px`;
+                }
+            });
+        }
+
+        function updateTransform() {
+            mapWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+
+        function showLocationInfo(location) {
+            // Remove active state from all markers
+            document.querySelectorAll('.marker').forEach(m => m.classList.remove('active'));
+
+            // Add active state to selected marker
+            const marker = mapWrapper.querySelector(`[data-id="${location.id}"]`);
+            if (marker) {
+                marker.classList.add('active');
+            }
+
+            // Set category for styling
+            infoPanel.setAttribute('data-category', location.category);
+
+            // Update info panel
+            document.getElementById('info-title').textContent = location.name;
+            document.getElementById('info-subtitle').textContent = location.subtitle;
+            document.getElementById('info-description').textContent = location.description;
+
+            // Update significance if available
+            const significanceSection = document.getElementById('info-significance-section');
+            const significanceEl = document.getElementById('info-significance');
+            if (location.significance) {
+                significanceEl.textContent = location.significance;
+                significanceSection.style.display = 'block';
+            } else {
+                significanceSection.style.display = 'none';
+            }
+
+            // Update image if available
+            const imageEl = document.getElementById('info-image');
+            if (location.image) {
+                imageEl.src = location.image;
+                imageEl.alt = location.name;
+                imageEl.style.display = 'block';
+            } else {
+                imageEl.style.display = 'none';
+            }
+
+            // Show panel
+            infoPanel.classList.add('open');
+        }
+
+        function closeInfoPanel() {
+            infoPanel.classList.remove('open');
+            document.querySelectorAll('.marker').forEach(m => m.classList.remove('active'));
+        }
+
+        function panToLocation(location) {
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            
+            const targetX = (location.x / 100) * imageWidth;
+            const targetY = (location.y / 100) * imageHeight;
+            
+            // Zoom in a bit
+            scale = Math.min(2, MAX_SCALE);
+            
+            // Center on location
+            translateX = containerWidth / 2 - targetX * scale;
+            translateY = containerHeight / 2 - targetY * scale;
+            
+            // Apply bounds
+            applyBounds();
+            updateTransform();
+            
+            // Show info
+            showLocationInfo(location);
+        }
+
+        function applyBounds() {
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            const scaledWidth = imageWidth * scale;
+            const scaledHeight = imageHeight * scale;
+            
+            // Allow some overflow but not too much
+            const maxOverflow = 100;
+            
+            if (scaledWidth <= containerWidth) {
+                translateX = (containerWidth - scaledWidth) / 2;
+            } else {
+                translateX = Math.min(maxOverflow, Math.max(containerWidth - scaledWidth - maxOverflow, translateX));
+            }
+            
+            if (scaledHeight <= containerHeight) {
+                translateY = (containerHeight - scaledHeight) / 2;
+            } else {
+                translateY = Math.min(maxOverflow, Math.max(containerHeight - scaledHeight - maxOverflow, translateY));
+            }
+        }
+
+        // Event Handlers - Mouse
+        mapContainer.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('marker')) return;
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            mapContainer.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            applyBounds();
+            updateTransform();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            mapContainer.style.cursor = 'grab';
+        });
+
+        // Mouse wheel zoom
+        mapContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const rect = mapContainer.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * delta));
+            
+            if (newScale !== scale) {
+                // Zoom toward mouse position
+                const scaleDiff = newScale / scale;
+                translateX = mouseX - (mouseX - translateX) * scaleDiff;
+                translateY = mouseY - (mouseY - translateY) * scaleDiff;
+                scale = newScale;
+                
+                applyBounds();
+                updateTransform();
+            }
+        }, { passive: false });
+
+        // Touch events
+        let touches = [];
+
+        mapContainer.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('marker')) return;
+            
+            touches = Array.from(e.touches);
+            
+            if (touches.length === 1) {
+                isDragging = true;
+                startX = touches[0].clientX - translateX;
+                startY = touches[0].clientY - translateY;
+            } else if (touches.length === 2) {
+                isDragging = false;
+                lastTouchDist = getTouchDistance(touches);
+            }
+        }, { passive: true });
+
+        mapContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            touches = Array.from(e.touches);
+            
+            if (touches.length === 1 && isDragging) {
+                translateX = touches[0].clientX - startX;
+                translateY = touches[0].clientY - startY;
+                applyBounds();
+                updateTransform();
+            } else if (touches.length === 2) {
+                const newDist = getTouchDistance(touches);
+                const delta = newDist / lastTouchDist;
+                
+                const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+                const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+                const rect = mapContainer.getBoundingClientRect();
+                const pinchX = centerX - rect.left;
+                const pinchY = centerY - rect.top;
+                
+                const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * delta));
+                
+                if (newScale !== scale) {
+                    const scaleDiff = newScale / scale;
+                    translateX = pinchX - (pinchX - translateX) * scaleDiff;
+                    translateY = pinchY - (pinchY - translateY) * scaleDiff;
+                    scale = newScale;
+                    
+                    applyBounds();
+                    updateTransform();
+                }
+                
+                lastTouchDist = newDist;
+            }
+        }, { passive: false });
+
+        mapContainer.addEventListener('touchend', () => {
+            isDragging = false;
+            touches = [];
+        });
+
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // Control buttons
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            const newScale = Math.min(MAX_SCALE, scale * 1.3);
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            
+            const scaleDiff = newScale / scale;
+            translateX = containerWidth / 2 - (containerWidth / 2 - translateX) * scaleDiff;
+            translateY = containerHeight / 2 - (containerHeight / 2 - translateY) * scaleDiff;
+            scale = newScale;
+            
+            applyBounds();
+            updateTransform();
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            const newScale = Math.max(MIN_SCALE, scale * 0.7);
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            
+            const scaleDiff = newScale / scale;
+            translateX = containerWidth / 2 - (containerWidth / 2 - translateX) * scaleDiff;
+            translateY = containerHeight / 2 - (containerHeight / 2 - translateY) * scaleDiff;
+            scale = newScale;
+            
+            applyBounds();
+            updateTransform();
+        });
+
+        document.getElementById('reset-view').addEventListener('click', () => {
+            closeInfoPanel();
+            fitMapToScreen();
+        });
+
+        // Info panel close
+        document.querySelector('.info-close').addEventListener('click', closeInfoPanel);
+
+        // Click outside to close
+        mapContainer.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('marker')) {
+                closeInfoPanel();
+            }
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query.length === 0) {
+                searchResults.classList.remove('active');
+                return;
+            }
+            
+            const matches = locations.filter(loc => 
+                loc.name.toLowerCase().includes(query) ||
+                loc.subtitle.toLowerCase().includes(query)
+            );
+            
+            if (matches.length > 0) {
+                searchResults.innerHTML = matches.map(loc => `
+                    <div class="search-result" data-id="${loc.id}">
+                        <div class="search-result-name">${loc.name}</div>
+                        <div class="search-result-type">${loc.subtitle}</div>
+                    </div>
+                `).join('');
+                searchResults.classList.add('active');
+                
+                // Add click handlers
+                searchResults.querySelectorAll('.search-result').forEach(result => {
+                    result.addEventListener('click', () => {
+                        const loc = locations.find(l => l.id === result.dataset.id);
+                        if (loc) {
+                            panToLocation(loc);
+                            searchInput.value = '';
+                            searchResults.classList.remove('active');
+                        }
+                    });
+                });
+            } else {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        // Close search on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#search-container')) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        // Map key toggle
+        const mapKeyToggle = document.getElementById('map-key-toggle');
+        const mapKeyPanel = document.getElementById('map-key-panel');
+
+        mapKeyToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mapKeyPanel.classList.toggle('open');
+        });
+
+        // Close map key on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#map-key')) {
+                mapKeyPanel.classList.remove('open');
+            }
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            fitMapToScreen();
+        });
+
+        // Initialize
+        loadMap();
+    </script>
+</body>
+</html>
