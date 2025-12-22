@@ -642,7 +642,7 @@
         #age-toggle-slider {
             position: absolute;
             top: 2px;
-            left: 2px;
+            right: 2px;
             width: 76px;
             height: 36px;
             background: linear-gradient(145deg, var(--gold-bright), var(--gold));
@@ -656,10 +656,11 @@
             font-size: 10px;
             font-weight: 700;
             color: var(--ink);
+            z-index: 2;
         }
 
         #age-toggle.second #age-toggle-slider {
-            transform: translateX(76px);
+            transform: translateX(-76px);
         }
 
         #age-toggle-labels {
@@ -677,6 +678,20 @@
             font-size: 9px;
             font-weight: 600;
             color: var(--ink-light);
+            z-index: 1;
+        }
+
+        #age-toggle-labels span {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Hide the label under the slider */
+        #age-toggle:not(.second) .label-third {
+            opacity: 0;
+        }
+
+        #age-toggle.second .label-second {
+            opacity: 0;
         }
 
         /* Map Key/Legend */
@@ -853,8 +868,8 @@
         <div id="age-toggle" role="button" aria-label="Toggle between Third and Second Age">
             <div id="age-toggle-slider">3rd Age</div>
             <div id="age-toggle-labels">
-                <span>3rd Age</span>
-                <span>2nd Age</span>
+                <span class="label-second">2nd Age</span>
+                <span class="label-third">3rd Age</span>
             </div>
         </div>
     </div>
