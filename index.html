@@ -775,87 +775,25 @@
             height: 3px;
             border-radius: 1px;
             flex-shrink: 0;
+            transition: opacity 0.2s ease;
         }
 
-        /* Journey Panel */
-        #journey-panel {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        #journey-panel-content {
-            position: absolute;
-            top: 60px;
-            right: 60px;
-            background: rgba(232, 220, 196, 0.98);
-            border: 2px solid var(--gold);
-            border-radius: 12px;
-            padding: 16px;
-            min-width: 240px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            transform: translateX(10px);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        #journey-panel-content.open {
-            transform: translateX(0);
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .journey-panel-title {
-            font-family: 'Cinzel', serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 12px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .journey-panel-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-family: 'Crimson Text', serif;
-            font-size: 0.95rem;
-            color: var(--ink-light);
+        .journey-toggle-item {
             cursor: pointer;
             user-select: none;
+            transition: opacity 0.2s ease;
         }
 
-        .journey-panel-item:last-child {
-            margin-bottom: 0;
+        .journey-toggle-item:hover {
+            opacity: 0.7;
         }
 
-        .journey-panel-item input[type="checkbox"] {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
+        .journey-toggle-item:not(.active) {
+            opacity: 0.4;
         }
 
-        .journey-panel-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            flex-shrink: 0;
-        }
-
-        .journey-panel-item label {
-            cursor: pointer;
-            flex: 1;
-        }
-
-        #journey-toggle.active {
-            background: linear-gradient(145deg, var(--gold-bright), var(--gold));
-            box-shadow: 0 2px 8px rgba(196, 165, 116, 0.4);
+        .journey-toggle-item:not(.active) .map-key-line {
+            opacity: 0.3;
         }
 
     </style>
@@ -923,7 +861,6 @@
         <button class="control-btn" id="zoom-out" aria-label="Zoom out">−</button>
         <button class="control-btn" id="reset-view" aria-label="Reset view">⌂</button>
         <button class="control-btn" id="map-key-toggle" aria-label="Toggle map key">⚑</button>
-        <button class="control-btn" id="journey-toggle" aria-label="Toggle journeys">🗺️</button>
     </div>
 
     <!-- Map Key Panel -->
@@ -960,48 +897,21 @@
             </div>
             <div class="map-key-divider"></div>
             <div class="map-key-subtitle">Journey Routes</div>
-            <div class="map-key-item">
+            <div class="map-key-item journey-toggle-item active" data-journey="fellowship">
                 <div class="map-key-line" style="background: #FF6B35;"></div>
                 <span>Fellowship</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item journey-toggle-item active" data-journey="frodo-sam">
                 <div class="map-key-line" style="background: #0A8A0A;"></div>
                 <span>Frodo & Sam</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item journey-toggle-item active" data-journey="merry-pippin">
                 <div class="map-key-line" style="background: #9370DB;"></div>
                 <span>Merry & Pippin</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item journey-toggle-item active" data-journey="aragorn">
                 <div class="map-key-line" style="background: #1E5A9E;"></div>
                 <span>Aragorn</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Journey Panel -->
-    <div id="journey-panel">
-        <div id="journey-panel-content">
-            <div class="journey-panel-title">Journeys</div>
-            <div class="journey-panel-item" data-journey="fellowship">
-                <input type="checkbox" id="journey-fellowship" checked>
-                <div class="journey-panel-color" style="background: #FF6B35;"></div>
-                <label for="journey-fellowship">Fellowship's Journey</label>
-            </div>
-            <div class="journey-panel-item" data-journey="frodo-sam">
-                <input type="checkbox" id="journey-frodo-sam" checked>
-                <div class="journey-panel-color" style="background: #0A8A0A;"></div>
-                <label for="journey-frodo-sam">Frodo & Sam's Journey</label>
-            </div>
-            <div class="journey-panel-item" data-journey="merry-pippin">
-                <input type="checkbox" id="journey-merry-pippin" checked>
-                <div class="journey-panel-color" style="background: #9370DB;"></div>
-                <label for="journey-merry-pippin">Merry & Pippin's Journey</label>
-            </div>
-            <div class="journey-panel-item" data-journey="aragorn">
-                <input type="checkbox" id="journey-aragorn" checked>
-                <div class="journey-panel-color" style="background: #1E5A9E;"></div>
-                <label for="journey-aragorn">Aragorn's Path</label>
             </div>
         </div>
     </div>
@@ -1844,39 +1754,18 @@
             }
         });
 
-        // Journey panel toggle
-        const journeyToggle = document.getElementById('journey-toggle');
-        const journeyPanel = document.getElementById('journey-panel-content');
-
-        journeyToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            journeyPanel.classList.toggle('open');
-            journeyToggle.classList.toggle('active');
-        });
-
-        // Close journey panel on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#journey-panel') && !e.target.closest('#journey-toggle')) {
-                journeyPanel.classList.remove('open');
-                journeyToggle.classList.remove('active');
-            }
-        });
-
-        // Individual journey toggles
-        document.querySelectorAll('.journey-panel-item').forEach(item => {
-            const checkbox = item.querySelector('input[type="checkbox"]');
-            const journeyId = item.dataset.journey;
-
-            checkbox.addEventListener('change', (e) => {
-                toggleJourneyPath(journeyId, e.target.checked);
-            });
-
-            // Allow clicking anywhere on the item
+        // Journey toggle items in legend
+        document.querySelectorAll('.journey-toggle-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (e.target !== checkbox) {
-                    checkbox.checked = !checkbox.checked;
-                    toggleJourneyPath(journeyId, checkbox.checked);
-                }
+                e.stopPropagation();
+                const journeyId = item.dataset.journey;
+                const isActive = item.classList.contains('active');
+
+                // Toggle active state
+                item.classList.toggle('active');
+
+                // Toggle journey path visibility
+                toggleJourneyPath(journeyId, !isActive);
             });
         });
 
