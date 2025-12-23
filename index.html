@@ -709,13 +709,31 @@
             border-radius: 12px;
             padding: 16px;
             min-width: 200px;
-            max-height: calc(100vh - 120px);
+            max-height: calc(100vh - 280px);
             overflow-y: auto;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             transform: translateX(10px);
             opacity: 0;
             pointer-events: none;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #map-key-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #map-key-panel::-webkit-scrollbar-track {
+            background: rgba(139, 115, 85, 0.2);
+            border-radius: 4px;
+        }
+
+        #map-key-panel::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+
+        #map-key-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-bright);
         }
 
         #map-key-panel.open {
