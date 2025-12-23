@@ -754,6 +754,110 @@
             flex-shrink: 0;
         }
 
+        .map-key-divider {
+            height: 1px;
+            background: rgba(139, 115, 85, 0.3);
+            margin: 12px 0;
+        }
+
+        .map-key-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .map-key-line {
+            width: 20px;
+            height: 3px;
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Journey Panel */
+        #journey-panel {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #journey-panel-content {
+            position: absolute;
+            top: 60px;
+            right: 60px;
+            background: rgba(232, 220, 196, 0.98);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 16px;
+            min-width: 240px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transform: translateX(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #journey-panel-content.open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .journey-panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .journey-panel-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
+            color: var(--ink-light);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .journey-panel-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .journey-panel-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .journey-panel-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .journey-panel-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        #journey-toggle.active {
+            background: linear-gradient(145deg, var(--gold-bright), var(--gold));
+            box-shadow: 0 2px 8px rgba(196, 165, 116, 0.4);
+        }
+
     </style>
 </head>
 <body>
@@ -819,6 +923,7 @@
         <button class="control-btn" id="zoom-out" aria-label="Zoom out">−</button>
         <button class="control-btn" id="reset-view" aria-label="Reset view">⌂</button>
         <button class="control-btn" id="map-key-toggle" aria-label="Toggle map key">⚑</button>
+        <button class="control-btn" id="journey-toggle" aria-label="Toggle journeys">🗺️</button>
     </div>
 
     <!-- Map Key Panel -->
@@ -852,6 +957,51 @@
             <div class="map-key-item">
                 <div class="map-key-color" style="background: var(--neutral); box-shadow: 0 0 4px rgba(64, 64, 64, 0.6);"></div>
                 <span>Neutral</span>
+            </div>
+            <div class="map-key-divider"></div>
+            <div class="map-key-subtitle">Journey Routes</div>
+            <div class="map-key-item">
+                <div class="map-key-line" style="background: #C4A574;"></div>
+                <span>Fellowship</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-line" style="background: #0A8A0A;"></div>
+                <span>Frodo & Sam</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-line" style="background: #9370DB;"></div>
+                <span>Merry & Pippin</span>
+            </div>
+            <div class="map-key-item">
+                <div class="map-key-line" style="background: #1E5A9E;"></div>
+                <span>Aragorn</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journey Panel -->
+    <div id="journey-panel">
+        <div id="journey-panel-content">
+            <div class="journey-panel-title">Journeys</div>
+            <div class="journey-panel-item" data-journey="fellowship">
+                <input type="checkbox" id="journey-fellowship" checked>
+                <div class="journey-panel-color" style="background: #C4A574;"></div>
+                <label for="journey-fellowship">Fellowship's Journey</label>
+            </div>
+            <div class="journey-panel-item" data-journey="frodo-sam">
+                <input type="checkbox" id="journey-frodo-sam" checked>
+                <div class="journey-panel-color" style="background: #0A8A0A;"></div>
+                <label for="journey-frodo-sam">Frodo & Sam's Journey</label>
+            </div>
+            <div class="journey-panel-item" data-journey="merry-pippin">
+                <input type="checkbox" id="journey-merry-pippin" checked>
+                <div class="journey-panel-color" style="background: #9370DB;"></div>
+                <label for="journey-merry-pippin">Merry & Pippin's Journey</label>
+            </div>
+            <div class="journey-panel-item" data-journey="aragorn">
+                <input type="checkbox" id="journey-aragorn" checked>
+                <div class="journey-panel-color" style="background: #1E5A9E;"></div>
+                <label for="journey-aragorn">Aragorn's Path</label>
             </div>
         </div>
     </div>
@@ -1163,6 +1313,60 @@
             // Placeholder - Second Age locations to be added
         ];
 
+        // Journey routes data
+        const journeyRoutes = [
+            {
+                id: 'fellowship',
+                name: "Fellowship's Journey",
+                color: '#C4A574',
+                waypoints: [
+                    { x: 37.1, y: 27.0 },   // The Shire
+                    { x: 42.3, y: 24.9 },   // Bree
+                    { x: 45.5, y: 25.8 },   // Weathertop
+                    { x: 50.7, y: 25.2 },   // Rivendell
+                    { x: 51.36, y: 34.75 }, // Moria
+                    { x: 54.88, y: 36.51 }  // Lothlórien
+                ]
+            },
+            {
+                id: 'frodo-sam',
+                name: "Frodo & Sam's Journey",
+                color: '#0A8A0A',
+                waypoints: [
+                    { x: 54.88, y: 36.51 }, // Lothlórien
+                    { x: 63.0, y: 49.1 },   // Dead Marshes
+                    { x: 62.72, y: 55.48 }, // Ithilien
+                    { x: 65.91, y: 60.57 }, // Minas Morgul
+                    { x: 66.20, y: 55.94 }, // Cirith Ungol
+                    { x: 70.36, y: 57.81 }  // Mount Doom
+                ]
+            },
+            {
+                id: 'merry-pippin',
+                name: "Merry & Pippin's Journey",
+                color: '#9370DB',
+                waypoints: [
+                    { x: 54.88, y: 36.51 }, // Lothlórien
+                    { x: 52.5, y: 44.2 },   // Fangorn Forest
+                    { x: 48.63, y: 46.01 }, // Isengard
+                    { x: 52.15, y: 53.73 }, // Edoras
+                    { x: 48.53, y: 51.72 }, // Helm's Deep
+                    { x: 60.83, y: 60.74 }  // Minas Tirith
+                ]
+            },
+            {
+                id: 'aragorn',
+                name: "Aragorn's Path",
+                color: '#1E5A9E',
+                waypoints: [
+                    { x: 54.88, y: 36.51 }, // Lothlórien
+                    { x: 52.15, y: 53.73 }, // Edoras
+                    { x: 48.53, y: 51.72 }, // Helm's Deep
+                    { x: 60.83, y: 60.74 }  // Minas Tirith
+                ]
+            }
+        ];
+
         // Get current locations based on age
         let locations = currentAge === 'third' ? thirdAgeLocations : secondAgeLocations;
 
@@ -1187,18 +1391,82 @@
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
 
+        // Journey Path Functions
+        function createJourneyPathsContainer() {
+            // Remove any existing SVG
+            const oldSvg = document.getElementById('journey-paths-svg');
+            if (oldSvg) oldSvg.remove();
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.id = 'journey-paths-svg';
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = `${imageWidth}px`;
+            svg.style.height = `${imageHeight}px`;
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '5';
+
+            // Insert as first child (below markers)
+            mapWrapper.insertBefore(svg, mapWrapper.firstChild);
+        }
+
+        function renderJourneyPath(route) {
+            const svg = document.getElementById('journey-paths-svg');
+            if (!svg) return;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+            // Convert percentage waypoints to pixel coordinates
+            const pathData = route.waypoints.map((wp, index) => {
+                const x = (wp.x / 100) * imageWidth;
+                const y = (wp.y / 100) * imageHeight;
+                return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+            }).join(' ');
+
+            path.setAttribute('id', `journey-path-${route.id}`);
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', route.color);
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0.8');
+            path.style.filter = `drop-shadow(0 0 4px ${route.color})`;
+            path.style.display = 'block';
+
+            svg.appendChild(path);
+        }
+
+        function renderAllJourneyPaths() {
+            journeyRoutes.forEach(route => {
+                renderJourneyPath(route);
+            });
+        }
+
+        function toggleJourneyPath(journeyId, visible) {
+            const path = document.getElementById(`journey-path-${journeyId}`);
+            if (path) {
+                path.style.display = visible ? 'block' : 'none';
+            }
+        }
+
         // Load the map image
         function loadMap() {
             mapImage.onload = () => {
                 imageWidth = mapImage.naturalWidth;
                 imageHeight = mapImage.naturalHeight;
-                
+
                 // Initial fit to screen
                 fitMapToScreen();
-                
+
+                // Create journey paths
+                createJourneyPathsContainer();
+                renderAllJourneyPaths();
+
                 // Create markers
                 createMarkers();
-                
+
                 // Hide loading
                 setTimeout(() => {
                     loading.classList.add('hidden');
@@ -1576,6 +1844,42 @@
             }
         });
 
+        // Journey panel toggle
+        const journeyToggle = document.getElementById('journey-toggle');
+        const journeyPanel = document.getElementById('journey-panel-content');
+
+        journeyToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            journeyPanel.classList.toggle('open');
+            journeyToggle.classList.toggle('active');
+        });
+
+        // Close journey panel on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#journey-panel') && !e.target.closest('#journey-toggle')) {
+                journeyPanel.classList.remove('open');
+                journeyToggle.classList.remove('active');
+            }
+        });
+
+        // Individual journey toggles
+        document.querySelectorAll('.journey-panel-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            const journeyId = item.dataset.journey;
+
+            checkbox.addEventListener('change', (e) => {
+                toggleJourneyPath(journeyId, e.target.checked);
+            });
+
+            // Allow clicking anywhere on the item
+            item.addEventListener('click', (e) => {
+                if (e.target !== checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    toggleJourneyPath(journeyId, checkbox.checked);
+                }
+            });
+        });
+
         // Handle resize
         window.addEventListener('resize', () => {
             fitMapToScreen();
@@ -1633,6 +1937,10 @@
 
                     // Refit map to screen with new dimensions
                     fitMapToScreen();
+
+                    // Recreate journey paths
+                    createJourneyPathsContainer();
+                    renderAllJourneyPaths();
 
                     // Create and show new markers quickly
                     createMarkers();
