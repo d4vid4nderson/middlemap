@@ -790,6 +790,22 @@
             text-transform: uppercase;
         }
 
+        .storyline-toggle {
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s ease;
+            padding: 4px 0;
+        }
+
+        .storyline-toggle:hover {
+            opacity: 0.7;
+        }
+
+        .storyline-toggle:not(.active) {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
         .map-key-line {
             width: 20px;
             height: 3px;
@@ -920,38 +936,38 @@
                 <span>Neutral</span>
             </div>
             <div class="map-key-divider"></div>
-            <div class="map-key-subtitle">The Hobbit</div>
-            <div class="map-key-item journey-toggle-item active" data-journey="bilbo">
+            <div class="map-key-subtitle storyline-toggle active" data-storyline="hobbit">The Hobbit</div>
+            <div class="map-key-item journey-toggle-item active" data-journey="bilbo" data-storyline="hobbit">
                 <div class="map-key-line" style="background: #D4AF37;"></div>
                 <span>Bilbo's Journey</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="bilbo-return">
+            <div class="map-key-item journey-toggle-item active" data-journey="bilbo-return" data-storyline="hobbit">
                 <div class="map-key-line" style="background: #B8860B;"></div>
                 <span>Bilbo's Return</span>
             </div>
             <div class="map-key-divider"></div>
-            <div class="map-key-subtitle">Lord of the Rings</div>
-            <div class="map-key-item journey-toggle-item active" data-journey="fellowship">
+            <div class="map-key-subtitle storyline-toggle active" data-storyline="lotr">Lord of the Rings</div>
+            <div class="map-key-item journey-toggle-item active" data-journey="fellowship" data-storyline="lotr">
                 <div class="map-key-line" style="background: #FF6B35;"></div>
                 <span>Fellowship</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="frodo-sam">
+            <div class="map-key-item journey-toggle-item active" data-journey="frodo-sam" data-storyline="lotr">
                 <div class="map-key-line" style="background: #0A8A0A;"></div>
                 <span>Frodo & Sam</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="merry-pippin">
+            <div class="map-key-item journey-toggle-item active" data-journey="merry-pippin" data-storyline="lotr">
                 <div class="map-key-line" style="background: #9370DB;"></div>
                 <span>Merry & Pippin</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="aragorn">
+            <div class="map-key-item journey-toggle-item active" data-journey="aragorn" data-storyline="lotr">
                 <div class="map-key-line" style="background: #1E5A9E;"></div>
                 <span>Aragorn</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="hobbits-return">
+            <div class="map-key-item journey-toggle-item active" data-journey="hobbits-return" data-storyline="lotr">
                 <div class="map-key-line" style="background: #8FBC8F;"></div>
                 <span>Hobbits Return</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="grey-havens">
+            <div class="map-key-item journey-toggle-item active" data-journey="grey-havens" data-storyline="lotr">
                 <div class="map-key-line" style="background: #C0C0C0;"></div>
                 <span>To Grey Havens</span>
             </div>
@@ -1872,6 +1888,33 @@
 
                 // Toggle marker visibility by category
                 toggleMarkersByCategory(category, !isActive);
+            });
+        });
+
+        // Storyline toggle (toggle all journeys in a story)
+        document.querySelectorAll('.storyline-toggle').forEach(header => {
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const storyline = header.dataset.storyline;
+                const isActive = header.classList.contains('active');
+
+                // Toggle active state on header
+                header.classList.toggle('active');
+
+                // Toggle all journey items in this storyline
+                document.querySelectorAll(`.journey-toggle-item[data-storyline="${storyline}"]`).forEach(item => {
+                    const journeyId = item.dataset.journey;
+
+                    if (isActive) {
+                        // Deactivate
+                        item.classList.remove('active');
+                        toggleJourneyPath(journeyId, false);
+                    } else {
+                        // Activate
+                        item.classList.add('active');
+                        toggleJourneyPath(journeyId, true);
+                    }
+                });
             });
         });
 
