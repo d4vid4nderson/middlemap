@@ -778,21 +778,25 @@
             transition: opacity 0.2s ease;
         }
 
-        .journey-toggle-item {
+        .journey-toggle-item,
+        .marker-toggle-item {
             cursor: pointer;
             user-select: none;
             transition: opacity 0.2s ease;
         }
 
-        .journey-toggle-item:hover {
+        .journey-toggle-item:hover,
+        .marker-toggle-item:hover {
             opacity: 0.7;
         }
 
-        .journey-toggle-item:not(.active) {
+        .journey-toggle-item:not(.active),
+        .marker-toggle-item:not(.active) {
             opacity: 0.4;
         }
 
-        .journey-toggle-item:not(.active) .map-key-line {
+        .journey-toggle-item:not(.active) .map-key-line,
+        .marker-toggle-item:not(.active) .map-key-color {
             opacity: 0.3;
         }
 
@@ -867,31 +871,31 @@
     <div id="map-key">
         <div id="map-key-panel">
             <div class="map-key-title">Legend</div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="hobbit">
                 <div class="map-key-color" style="background: var(--hobbit); box-shadow: 0 0 4px rgba(10, 138, 10, 0.6);"></div>
                 <span>Hobbits</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="elf">
                 <div class="map-key-color" style="background: var(--elf); box-shadow: 0 0 4px rgba(147, 112, 219, 0.6);"></div>
                 <span>Elves</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="dwarf">
                 <div class="map-key-color" style="background: var(--dwarf); box-shadow: 0 0 4px rgba(255, 165, 0, 0.6);"></div>
                 <span>Dwarves</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="men">
                 <div class="map-key-color" style="background: var(--men); box-shadow: 0 0 4px rgba(30, 90, 158, 0.6);"></div>
                 <span>Men</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="evil">
                 <div class="map-key-color" style="background: var(--evil); box-shadow: 0 0 4px rgba(204, 0, 0, 0.6);"></div>
                 <span>Evil</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="ent">
                 <div class="map-key-color" style="background: var(--ent); box-shadow: 0 0 4px rgba(139, 69, 19, 0.6);"></div>
                 <span>Ents</span>
             </div>
-            <div class="map-key-item">
+            <div class="map-key-item marker-toggle-item active" data-category="neutral">
                 <div class="map-key-color" style="background: var(--neutral); box-shadow: 0 0 4px rgba(64, 64, 64, 0.6);"></div>
                 <span>Neutral</span>
             </div>
@@ -1361,6 +1365,12 @@
             }
         }
 
+        function toggleMarkersByCategory(category, visible) {
+            document.querySelectorAll(`.marker-${category}`).forEach(marker => {
+                marker.style.display = visible ? 'block' : 'none';
+            });
+        }
+
         // Load the map image
         function loadMap() {
             mapImage.onload = () => {
@@ -1766,6 +1776,21 @@
 
                 // Toggle journey path visibility
                 toggleJourneyPath(journeyId, !isActive);
+            });
+        });
+
+        // Marker toggle items in legend
+        document.querySelectorAll('.marker-toggle-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const category = item.dataset.category;
+                const isActive = item.classList.contains('active');
+
+                // Toggle active state
+                item.classList.toggle('active');
+
+                // Toggle marker visibility by category
+                toggleMarkersByCategory(category, !isActive);
             });
         });
 
