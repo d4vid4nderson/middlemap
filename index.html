@@ -709,6 +709,8 @@
             border-radius: 12px;
             padding: 16px;
             min-width: 200px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             transform: translateX(10px);
             opacity: 0;
@@ -900,11 +902,17 @@
                 <span>Neutral</span>
             </div>
             <div class="map-key-divider"></div>
-            <div class="map-key-subtitle">Journey Routes</div>
+            <div class="map-key-subtitle">The Hobbit</div>
             <div class="map-key-item journey-toggle-item active" data-journey="bilbo">
                 <div class="map-key-line" style="background: #D4AF37;"></div>
                 <span>Bilbo's Journey</span>
             </div>
+            <div class="map-key-item journey-toggle-item active" data-journey="bilbo-return">
+                <div class="map-key-line" style="background: #B8860B;"></div>
+                <span>Bilbo's Return</span>
+            </div>
+            <div class="map-key-divider"></div>
+            <div class="map-key-subtitle">Lord of the Rings</div>
             <div class="map-key-item journey-toggle-item active" data-journey="fellowship">
                 <div class="map-key-line" style="background: #FF6B35;"></div>
                 <span>Fellowship</span>
@@ -921,17 +929,13 @@
                 <div class="map-key-line" style="background: #1E5A9E;"></div>
                 <span>Aragorn</span>
             </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="bilbo-return">
-                <div class="map-key-line" style="background: #B8860B;"></div>
-                <span>Bilbo's Return</span>
+            <div class="map-key-item journey-toggle-item active" data-journey="hobbits-return">
+                <div class="map-key-line" style="background: #8FBC8F;"></div>
+                <span>Hobbits Return</span>
             </div>
             <div class="map-key-item journey-toggle-item active" data-journey="grey-havens">
                 <div class="map-key-line" style="background: #C0C0C0;"></div>
                 <span>To Grey Havens</span>
-            </div>
-            <div class="map-key-item journey-toggle-item active" data-journey="hobbits-return">
-                <div class="map-key-line" style="background: #8FBC8F;"></div>
-                <span>Hobbits Return</span>
             </div>
         </div>
     </div>
