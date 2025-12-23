@@ -901,6 +901,10 @@
             </div>
             <div class="map-key-divider"></div>
             <div class="map-key-subtitle">Journey Routes</div>
+            <div class="map-key-item journey-toggle-item active" data-journey="bilbo">
+                <div class="map-key-line" style="background: #D4AF37;"></div>
+                <span>Bilbo's Journey</span>
+            </div>
             <div class="map-key-item journey-toggle-item active" data-journey="fellowship">
                 <div class="map-key-line" style="background: #FF6B35;"></div>
                 <span>Fellowship</span>
@@ -1229,6 +1233,18 @@
 
         // Journey routes data
         const journeyRoutes = [
+            {
+                id: 'bilbo',
+                name: "Bilbo's Journey",
+                color: '#D4AF37',
+                waypoints: [
+                    { x: 37.1, y: 27.0 },   // The Shire
+                    { x: 50.7, y: 25.2 },   // Rivendell
+                    { x: 60.44, y: 29.20 }, // Mirkwood
+                    { x: 66.55, y: 25.34 }, // Lake-town
+                    { x: 67.21, y: 20.42 }  // Erebor
+                ]
+            },
             {
                 id: 'fellowship',
                 name: "Fellowship's Journey",
