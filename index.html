@@ -452,13 +452,14 @@
 
         #search-input {
             width: 100%;
-            padding: 12px 20px;
+            height: 42px;
+            padding: 0 20px;
             padding-right: 44px;
             font-family: 'Crimson Text', serif;
             font-size: 1rem;
             background: rgba(232, 220, 196, 0.95);
             border: 2px solid var(--gold);
-            border-radius: 24px;
+            border-radius: 21px;
             color: var(--ink);
             outline: none;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -627,40 +628,36 @@
 
         #age-toggle {
             position: relative;
-            width: 160px;
-            height: 44px;
+            width: 170px;
+            height: 42px;
             background: linear-gradient(145deg, var(--parchment-dark), #bfae94);
             border: 2px solid var(--gold);
-            border-radius: 22px;
+            border-radius: 21px;
             cursor: pointer;
             box-shadow:
                 0 4px 12px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4);
             transition: all 0.3s ease;
+            overflow: hidden;
         }
 
         #age-toggle-slider {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 76px;
-            height: 36px;
+            top: 3px;
+            right: 3px;
+            width: 80px;
+            height: 32px;
             background: linear-gradient(145deg, var(--gold-bright), var(--gold));
-            border-radius: 18px;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 16px;
+            transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Cinzel', serif;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--ink);
             z-index: 2;
+            transform: translateX(0);
         }
 
         #age-toggle.second #age-toggle-slider {
-            transform: translateX(-76px);
+            /* Move slider to align with 3px spacing on left side */
+            transform: translateX(-84px) !important;
         }
 
         #age-toggle-labels {
@@ -671,27 +668,25 @@
             height: 100%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
             pointer-events: none;
             font-family: 'Cinzel', serif;
             font-size: 9px;
             font-weight: 600;
-            color: var(--ink-light);
-            z-index: 1;
+            color: var(--ink);
+            z-index: 3;
+            letter-spacing: 0.02em;
         }
 
-        #age-toggle-labels span {
-            transition: opacity 0.3s ease;
+        #age-toggle-labels .label-second {
+            position: absolute;
+            left: 43px;
+            transform: translateX(-50%);
         }
 
-        /* Hide the label under the slider */
-        #age-toggle:not(.second) .label-third {
-            opacity: 0;
-        }
-
-        #age-toggle.second .label-second {
-            opacity: 0;
+        #age-toggle-labels .label-third {
+            position: absolute;
+            right: 43px;
+            transform: translateX(50%);
         }
 
         /* Map Key/Legend */
@@ -866,7 +861,7 @@
     <!-- Age Toggle -->
     <div id="age-toggle-container">
         <div id="age-toggle" role="button" aria-label="Toggle between Third and Second Age">
-            <div id="age-toggle-slider">3rd Age</div>
+            <div id="age-toggle-slider"></div>
             <div id="age-toggle-labels">
                 <span class="label-second">2nd Age</span>
                 <span class="label-third">3rd Age</span>
@@ -896,20 +891,7 @@
         let currentAge = 'third'; // 'third' or 'second'
 
         // Location data with coordinates (percentage-based for responsiveness)
-
-        /* THIRD AGE LOCATIONS TO ADD BACK (11 remaining):
-        - Lothlórien (elf)
-        - Edoras/Rohan (men)
-        - Helm's Deep (men)
-        - Osgiliath (men)
-        - Erebor (dwarf)
-        - Lake-town (men)
-        - Mirkwood (elf)
-        - Dol Guldur (evil)
-        - Grey Havens (elf)
-        - Cirith Ungol (evil)
-        - Ithilien (men)
-        */
+        // All 24 Third Age locations are now positioned
 
         const thirdAgeLocations = [
             {
@@ -1054,6 +1036,116 @@
                 image: 'images/locations/Minas_Morgul.webp',
                 description: 'Minas Morgul, once Minas Ithil the Tower of the Moon, was captured by the Nazgûl and became their stronghold. Its pale, corpse-like glow and the terror emanating from within made it one of the most dread places in Middle-earth. The Witch-king ruled from its twisted spires.',
                 significance: 'Frodo, Sam, and Gollum passed by this dread fortress on their way to Cirith Ungol. They witnessed the Witch-king leading his army out to war, and barely escaped detection by hiding from the Nazgûl.'
+            },
+            {
+                id: 'grey-havens',
+                name: 'Grey Havens',
+                subtitle: 'Mithlond',
+                category: 'elf',
+                x: 5.6,
+                y: 22.1,
+                description: 'The Grey Havens, or Mithlond in Sindarin, is the ancient Elven harbor on the Gulf of Lhûn in the far west of Middle-earth. Built by Círdan the Shipwright in the Second Age, it served as the last departure point for Elves sailing to the Undying Lands of Valinor across the sea.',
+                significance: 'From these shores, the Ring-bearers—Bilbo, Frodo, and later Gandalf, Galadriel, and Elrond—departed Middle-earth at the end of the Third Age, sailing west to the eternal peace of the Undying Lands.'
+            },
+            {
+                id: 'lothlorien',
+                name: 'Lothlórien',
+                subtitle: 'The Golden Wood',
+                category: 'elf',
+                x: 49.7,
+                y: 41.7,
+                description: 'Lothlórien, the Golden Wood, is the fairest of all Elven realms remaining in Middle-earth during the Third Age. Ruled by Galadriel and Celeborn, its mallorn trees with golden leaves create a realm of timeless beauty. Protected by Galadriel\'s power and her ring Nenya, time moves differently within its borders.',
+                significance: 'The Fellowship rested here after Gandalf\'s fall in Moria. Galadriel showed Frodo and Sam visions in her Mirror, gave them the light of Eärendil, and provided the Company with gifts that would prove crucial to their quest—particularly the Elven cloaks and lembas bread.'
+            },
+            {
+                id: 'edoras',
+                name: 'Edoras',
+                subtitle: 'Capital of Rohan',
+                category: 'men',
+                x: 47.6,
+                y: 63.8,
+                description: 'Edoras is the capital of Rohan, built upon a hill in the White Mountains. The golden hall of Meduseld, home to the Kings of Rohan, sits at its summit. From here, King Théoden ruled the horse-lords, the Rohirrim, who were renowned throughout Middle-earth for their cavalry and their alliance with Gondor.',
+                significance: 'Gandalf freed King Théoden from Saruman\'s influence here, restoring the king\'s will to fight. Théoden then led the Rohirrim to Helm\'s Deep and later to the Battle of the Pelennor Fields, where he fell heroically defending Gondor.'
+            },
+            {
+                id: 'helms-deep',
+                name: 'Helm\'s Deep',
+                subtitle: 'The Hornburg',
+                category: 'men',
+                x: 44.8,
+                y: 61.3,
+                description: 'Helm\'s Deep is a fortified gorge in the White Mountains, home to the fortress of the Hornburg. Built by Gondor but given to Rohan, it served as a refuge in times of war. The Deeping Wall stretches across the gorge, and the caves of Aglarond lie behind, providing shelter for the people of Rohan.',
+                significance: 'The Battle of Helm\'s Deep saw Théoden and the Rohirrim, aided by Aragorn, Legolas, and Gimli, defend against Saruman\'s army of 10,000 Uruk-hai. Gandalf\'s arrival with Éomer and reinforcements at dawn turned the tide and broke the siege.'
+            },
+            {
+                id: 'erebor',
+                name: 'Erebor',
+                subtitle: 'The Lonely Mountain',
+                category: 'dwarf',
+                x: 73.5,
+                y: 16.6,
+                description: 'Erebor, the Lonely Mountain, was the great Dwarven kingdom in the northeast of Middle-earth. Once home to Thrór and his people, it was conquered by the dragon Smaug who coveted its vast treasure. Thorin Oakenshield led a quest to reclaim it, as chronicled in Bilbo\'s adventure, and it was restored as a Dwarven stronghold.',
+                significance: 'Bilbo\'s journey to Erebor with Thorin\'s company led to the finding of the One Ring and Smaug\'s defeat. During the War of the Ring, Dwarves from Erebor helped defend the North against Sauron\'s forces, preventing them from joining the assault on Gondor.'
+            },
+            {
+                id: 'laketown',
+                name: 'Lake-town',
+                subtitle: 'Esgaroth',
+                category: 'men',
+                x: 71.4,
+                y: 19.0,
+                description: 'Lake-town, also known as Esgaroth, is a city of Men built entirely on stilts above the Long Lake, south of Erebor. Its people were merchants and fishermen who traded with the Dwarves of the Mountain and the Elves of Mirkwood. The town was destroyed by Smaug but rebuilt after the dragon\'s defeat.',
+                significance: 'Bard the Bowman, a resident of Lake-town, slew Smaug with a black arrow, saving the region from the dragon\'s wrath. The town was rebuilt with treasure from Erebor, and Bard became a lord of the region, founding the line of the Kings of Dale.'
+            },
+            {
+                id: 'mirkwood',
+                name: 'Mirkwood',
+                subtitle: 'Taur-nu-Fuin',
+                category: 'elf',
+                x: 61.6,
+                y: 36.8,
+                description: 'Mirkwood, once called Greenwood the Great, is a vast and ancient forest that fell under the shadow of evil. The Woodland Realm of the Elves, ruled by Thranduil, lies in its northern reaches. The forest\'s southern portion was corrupted by the Necromancer (Sauron) at Dol Guldur, filling it with giant spiders and dark creatures.',
+                significance: 'Bilbo and the Dwarves were captured by the Wood-elves here and later escaped in barrels. Legolas, son of Thranduil, would later join the Fellowship. After Sauron\'s defeat, Thranduil and Celeborn cleansed the forest, renaming it Eryn Lasgalen, the Wood of Greenleaves.'
+            },
+            {
+                id: 'dol-guldur',
+                name: 'Dol Guldur',
+                subtitle: 'Hill of Sorcery',
+                category: 'evil',
+                x: 59.5,
+                y: 51.5,
+                description: 'Dol Guldur, the Hill of Sorcery, is a dark fortress in southern Mirkwood. It was secretly occupied by Sauron disguised as the Necromancer. The White Council, led by Gandalf, eventually drove Sauron out, but he had already prepared Barad-dûr for his return. The fortress remained a source of evil until Sauron\'s final defeat.',
+                significance: 'Gandalf ventured into Dol Guldur and discovered it was Sauron in disguise. Years later, the White Council attacked and drove Sauron out, but this was part of Sauron\'s plan to openly reclaim Mordor. The fortress fell permanently when Galadriel destroyed it after the Ring was unmade.'
+            },
+            {
+                id: 'osgiliath',
+                name: 'Osgiliath',
+                subtitle: 'Citadel of the Stars',
+                category: 'men',
+                x: 62.3,
+                y: 62.6,
+                description: 'Osgiliath, the Citadel of the Stars, was the ancient capital of Gondor, straddling the River Anduin between Minas Tirith and Minas Morgul. Once a great city with a bridge of many arches, it fell into ruin during the civil war and was further devastated by attacks from Mordor. By the War of the Ring, it was largely abandoned.',
+                significance: 'Faramir and the Rangers of Ithilien held the western ruins of Osgiliath against Mordor\'s forces. Frodo was briefly captured here by Faramir before being released to continue his quest. The city saw fierce fighting during the siege of Gondor.'
+            },
+            {
+                id: 'cirith-ungol',
+                name: 'Cirith Ungol',
+                subtitle: 'Pass of the Spider',
+                category: 'evil',
+                x: 65.1,
+                y: 62.6,
+                description: 'Cirith Ungol is a high mountain pass on the western border of Mordor, guarded by a fortress tower. The pass is the lair of Shelob, an ancient and malevolent giant spider. The name means "Spider\'s Cleft" in Sindarin. It was used as a secret route into Mordor, though few who entered survived.',
+                significance: 'Gollum led Frodo and Sam through this pass to enter Mordor. Shelob attacked and poisoned Frodo, and Sam fought her off with Sting and the Phial of Galadriel. Orcs captured Frodo\'s body, but Sam rescued him from the tower, allowing them to continue to Mount Doom.'
+            },
+            {
+                id: 'ithilien',
+                name: 'Ithilien',
+                subtitle: 'Land of the Moon',
+                category: 'men',
+                x: 63.7,
+                y: 63.8,
+                description: 'Ithilien is a fair region of Gondor lying between the River Anduin and the Mountains of Shadow. Once a garden province of Gondor, it fell under the shadow of Mordor and became a wilderness. The Rangers of Ithilien, led by Faramir, operated here as guerrilla fighters against Sauron\'s forces crossing from Mordor.',
+                significance: 'Faramir and his Rangers captured Frodo and Sam in Ithilien and brought them to the hidden refuge of Henneth Annûn. After questioning them about their quest, Faramir chose to release them, resisting the temptation of the Ring and allowing them to continue to Mordor.'
             }
         ];
 
@@ -1489,34 +1581,74 @@
 
             // Update toggle UI
             const toggle = document.getElementById('age-toggle');
-            const slider = document.getElementById('age-toggle-slider');
             if (currentAge === 'second') {
                 toggle.classList.add('second');
-                slider.textContent = '2nd Age';
             } else {
                 toggle.classList.remove('second');
-                slider.textContent = '3rd Age';
             }
 
-            // Update header subtitle
+            // Update header subtitle with smooth fade
             const subtitle = document.querySelector('.header-subtitle');
-            subtitle.textContent = currentAge === 'third'
-                ? 'An Interactive Journey Through Arda'
-                : 'The Age of Númenor and the Rings of Power';
+            subtitle.style.transition = 'opacity 0.2s ease';
+            subtitle.style.opacity = '0';
+            setTimeout(() => {
+                subtitle.textContent = currentAge === 'third'
+                    ? 'An Interactive Journey Through Arda'
+                    : 'The Age of Númenor and the Rings of Power';
+                subtitle.style.opacity = '1';
+            }, 200);
 
             // Close info panel
             closeInfoPanel();
 
-            // Clear existing markers
-            document.querySelectorAll('.marker').forEach(marker => marker.remove());
+            // Quick fade for markers
+            const existingMarkers = document.querySelectorAll('.marker');
+            existingMarkers.forEach(marker => {
+                marker.style.transition = 'opacity 0.15s ease';
+                marker.style.opacity = '0';
+            });
 
-            // Reload map with new age
-            loadMap();
+            // Quick fade for map
+            mapImage.style.transition = 'opacity 0.2s ease';
+            mapImage.style.opacity = '0.3';
+
+            setTimeout(() => {
+                // Remove old markers immediately
+                existingMarkers.forEach(marker => marker.remove());
+
+                // Update map source and wait for load
+                mapImage.onload = () => {
+                    // Update dimensions for the new map
+                    imageWidth = mapImage.naturalWidth;
+                    imageHeight = mapImage.naturalHeight;
+
+                    // Refit map to screen with new dimensions
+                    fitMapToScreen();
+
+                    // Create and show new markers quickly
+                    createMarkers();
+
+                    // Fade map to full opacity
+                    mapImage.style.opacity = '1';
+
+                    // Quickly fade in new markers
+                    requestAnimationFrame(() => {
+                        document.querySelectorAll('.marker').forEach(marker => {
+                            marker.style.transition = 'opacity 0.25s ease';
+                            marker.style.opacity = '1';
+                        });
+                    });
+                };
+
+                mapImage.src = currentAge === 'third' ? 'images/map.png' : 'images/map_second_age.png';
+            }, 150);
         }
 
         // Age toggle event listener
         const ageToggle = document.getElementById('age-toggle');
-        ageToggle.addEventListener('click', () => {
+        ageToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const newAge = currentAge === 'third' ? 'second' : 'third';
             switchAge(newAge);
         });
