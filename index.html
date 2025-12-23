@@ -921,6 +921,18 @@
                 <div class="map-key-line" style="background: #1E5A9E;"></div>
                 <span>Aragorn</span>
             </div>
+            <div class="map-key-item journey-toggle-item active" data-journey="bilbo-return">
+                <div class="map-key-line" style="background: #B8860B;"></div>
+                <span>Bilbo's Return</span>
+            </div>
+            <div class="map-key-item journey-toggle-item active" data-journey="grey-havens">
+                <div class="map-key-line" style="background: #C0C0C0;"></div>
+                <span>To Grey Havens</span>
+            </div>
+            <div class="map-key-item journey-toggle-item active" data-journey="hobbits-return">
+                <div class="map-key-line" style="background: #8FBC8F;"></div>
+                <span>Hobbits Return</span>
+            </div>
         </div>
     </div>
 
@@ -1293,6 +1305,37 @@
                     { x: 52.15, y: 53.73 }, // Edoras
                     { x: 48.53, y: 51.72 }, // Helm's Deep
                     { x: 60.83, y: 60.74 }  // Minas Tirith
+                ]
+            },
+            {
+                id: 'bilbo-return',
+                name: "Bilbo's Return",
+                color: '#B8860B',
+                waypoints: [
+                    { x: 67.21, y: 20.42 }, // Erebor
+                    { x: 66.55, y: 25.34 }, // Lake-town
+                    { x: 60.44, y: 29.20 }, // Mirkwood
+                    { x: 50.7, y: 25.2 },   // Rivendell
+                    { x: 37.1, y: 27.0 }    // The Shire
+                ]
+            },
+            {
+                id: 'grey-havens',
+                name: "Journey to Grey Havens",
+                color: '#C0C0C0',
+                waypoints: [
+                    { x: 37.1, y: 27.0 },   // The Shire
+                    { x: 29.19, y: 25.93 }  // Grey Havens
+                ]
+            },
+            {
+                id: 'hobbits-return',
+                name: "Hobbits Return Home",
+                color: '#8FBC8F',
+                waypoints: [
+                    { x: 60.83, y: 60.74 }, // Minas Tirith
+                    { x: 50.7, y: 25.2 },   // Rivendell
+                    { x: 37.1, y: 27.0 }    // The Shire
                 ]
             }
         ];
